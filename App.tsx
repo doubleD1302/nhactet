@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SetupForm } from './components/SetupForm';
 import { Envelope } from './components/Envelope';
 import { ResultModal } from './components/ResultModal';
-import { GameSettings, EnvelopeData } from './types';
+import { GameSettings, EnvelopeData, DistributionMode } from './types';
 import { generateEnvelopes } from './utils';
 import { IMAGES, AUDIO } from './constants';
 
@@ -16,6 +16,7 @@ const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.SETUP);
   const [envelopes, setEnvelopes] = useState<EnvelopeData[]>([]);
   const [selectedEnvelope, setSelectedEnvelope] = useState<EnvelopeData | null>(null);
+  const [currentSettings, setCurrentSettings] = useState<GameSettings | null>(null);
   const [volume, setVolume] = useState<number>(0.5);
   const backgroundAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -35,6 +36,7 @@ const App: React.FC = () => {
   
   const handleStart = (settings: GameSettings) => {
     backgroundAudioRef.current?.play().catch(() => undefined);
+    setCurrentSettings(settings);
 
     // Generate data
     const newEnvelopes = generateEnvelopes(
@@ -78,22 +80,28 @@ const App: React.FC = () => {
     setAppState(AppState.SETUP);
     setEnvelopes([]);
     setSelectedEnvelope(null);
+    setCurrentSettings(null);
   };
 
   const allOpened = envelopes.length > 0 && envelopes.every(e => e.isOpened);
+  const isSingleDenominationEnvelope =
+    appState === AppState.PLAYING &&
+    currentSettings?.mode === DistributionMode.DENOMINATION_RANDOM &&
+    envelopes.length === 1;
 
   return (
     <div className="min-h-[100dvh] w-full relative overflow-hidden font-sans text-gray-900">
       <audio ref={backgroundAudioRef} src={AUDIO.BACKGROUND_MUSIC} autoPlay loop preload="auto" playsInline />
       
-      {/* Mobile background: ưu tiên hiển thị trọn chiều cao ảnh */}
+      {/* Mobile background: hiển thị trọn ảnh trong màn hình, không tràn */}
       <div 
-        className="absolute inset-0 z-0 md:hidden"
+        className="fixed inset-0 z-0 md:hidden"
         style={{
           backgroundImage: `url('${IMAGES.BACKGROUND}')`,
-          backgroundSize: 'auto 100%',
-          backgroundPosition: 'center top',
-          backgroundRepeat: 'no-repeat'
+          backgroundSize: 'contain',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: '#2b0a0a'
         }}
       />
 
@@ -109,7 +117,7 @@ const App: React.FC = () => {
       />
 
       {/* Overlay lớp phủ tối nhẹ để tăng độ tương phản cho nội dung */}
-      <div className="absolute md:fixed inset-0 z-0 bg-black/10 pointer-events-none"></div>
+      <div className="fixed inset-0 z-0 bg-black/10 pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col items-center min-h-[100dvh]">
         <div className="fixed top-2 right-2 md:top-4 md:right-4 z-20 flex items-center gap-1.5 md:gap-2 bg-black/35 text-white px-2 py-1.5 md:px-3 md:py-2 rounded-full backdrop-blur-sm">
@@ -166,18 +174,34 @@ const App: React.FC = () => {
           {appState === AppState.PLAYING && (
             <div className="flex flex-col items-center w-full h-full">
               
-              <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 p-1.5 sm:p-4 overflow-y-auto max-h-[64dvh] sm:max-h-[70vh] custom-scrollbar">
-                {envelopes.map((env, index) => (
-                  <div key={env.id} className="flex justify-center">
-                    <Envelope 
-                      data={env} 
-                      index={index} 
-                      onClick={() => handleEnvelopeClick(env)} 
-                      disabled={!!selectedEnvelope} // Disable clicking others while modal is open
-                    />
-                  </div>
-                ))}
-              </div>
+              {isSingleDenominationEnvelope ? (
+                <div className="w-full flex items-center justify-center min-h-[68dvh] overflow-visible px-2">
+                  {envelopes.map((env, index) => (
+                    <div key={env.id} className="flex justify-center">
+                      <Envelope 
+                        data={env} 
+                        index={index} 
+                        onClick={() => handleEnvelopeClick(env)} 
+                        disabled={!!selectedEnvelope}
+                        isMega
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 p-1.5 sm:p-4 overflow-y-auto max-h-[64dvh] sm:max-h-[70vh] custom-scrollbar">
+                  {envelopes.map((env, index) => (
+                    <div key={env.id} className="flex justify-center">
+                      <Envelope 
+                        data={env} 
+                        index={index} 
+                        onClick={() => handleEnvelopeClick(env)} 
+                        disabled={!!selectedEnvelope} // Disable clicking others while modal is open
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {allOpened ? (
                  <div className="mt-5 sm:mt-8 mb-6 sm:mb-8 animate-pop-in">

@@ -22,7 +22,7 @@
               'pop-in': 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
               'float': 'float 3s ease-in-out infinite',
               'glow': 'glow 2s ease-in-out infinite alternate',
-              'envelope-wobble': 'envelopeWobble 1.9s ease-in-out infinite',
+              'envelope-wobble': 'envelopeWobble 1.05s cubic-bezier(.36,.07,.19,.97) infinite',
             },
             keyframes: {
               shake: {
@@ -45,9 +45,10 @@
               },
               envelopeWobble: {
                 '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
-                '25%': { transform: 'translateY(-2px) rotate(-1.4deg)' },
-                '50%': { transform: 'translateY(0) rotate(1.4deg)' },
-                '75%': { transform: 'translateY(-1px) rotate(-0.8deg)' }
+                '20%': { transform: 'translateY(-5px) rotate(-4.5deg)' },
+                '40%': { transform: 'translateY(1px) rotate(4.8deg)' },
+                '60%': { transform: 'translateY(-4px) rotate(-3.6deg)' },
+                '80%': { transform: 'translateY(0) rotate(3.2deg)' }
               }
             }
           }
