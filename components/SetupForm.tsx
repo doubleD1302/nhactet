@@ -52,6 +52,11 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
         return;
       }
 
+      if (count > parsedDenominations.length) {
+        alert(`Bạn có ${parsedDenominations.length} tờ tiền, nên số bao tối đa là ${parsedDenominations.length} (mỗi bao chỉ 1 tờ).`);
+        return;
+      }
+
       onStart({
         totalAmount: denominationTotal,
         totalEnvelopes: count,
@@ -74,29 +79,29 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-2xl w-full max-w-md border-2 border-tet-red mx-4 animate-pop-in">
-      <h1 className="text-3xl font-bold text-center text-tet-red mb-6 uppercase tracking-wider">Thiết Lập Lì Xì</h1>
+    <div className="bg-white/90 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-md border-2 border-tet-red mx-2 sm:mx-4 animate-pop-in">
+      <h1 className="text-2xl sm:text-3xl font-bold text-center text-tet-red mb-4 sm:mb-6 uppercase tracking-wide sm:tracking-wider">Thiết Lập Lì Xì</h1>
       
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         <div>
-          <label className="block text-gray-700 font-semibold mb-2">Tổng số tiền (VNĐ)</label>
+          <label className="block text-gray-700 font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">Tổng số tiền (VNĐ)</label>
           <input
             type="number"
             value={totalAmount}
             onChange={(e) => setTotalAmount(e.target.value)}
             disabled={mode === DistributionMode.DENOMINATION_RANDOM}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-tet-red focus:ring-2 focus:ring-red-200 outline-none transition-all text-lg font-medium text-gray-800"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 focus:border-tet-red focus:ring-2 focus:ring-red-200 outline-none transition-all text-base sm:text-lg font-medium text-gray-800"
             placeholder={mode === DistributionMode.DENOMINATION_RANDOM ? "Tự tính theo mệnh giá" : "Ví dụ: 500000"}
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-semibold mb-2">Số lượng bao</label>
+          <label className="block text-gray-700 font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">Số lượng bao</label>
           <input
             type="number"
             value={totalEnvelopes}
             onChange={(e) => setTotalEnvelopes(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-tet-red focus:ring-2 focus:ring-red-200 outline-none transition-all text-lg font-medium text-gray-800"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 focus:border-tet-red focus:ring-2 focus:ring-red-200 outline-none transition-all text-base sm:text-lg font-medium text-gray-800"
             placeholder="Ví dụ: 10"
             min="1"
             max="100"
@@ -104,12 +109,12 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-semibold mb-2">Cách chia tiền</label>
+          <label className="block text-gray-700 font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">Cách chia tiền</label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button
               type="button"
               onClick={() => setMode(DistributionMode.RANDOM)}
-              className={`p-3 rounded-lg border-2 font-bold transition-all ${
+              className={`p-2.5 sm:p-3 rounded-lg border-2 text-sm sm:text-base font-bold transition-all ${
                 mode === DistributionMode.RANDOM
                   ? 'bg-tet-red text-white border-tet-red shadow-lg scale-105'
                   : 'bg-white text-gray-500 border-gray-200 hover:border-red-300'
@@ -120,7 +125,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
             <button
               type="button"
               onClick={() => setMode(DistributionMode.EQUAL)}
-              className={`p-3 rounded-lg border-2 font-bold transition-all ${
+              className={`p-2.5 sm:p-3 rounded-lg border-2 text-sm sm:text-base font-bold transition-all ${
                 mode === DistributionMode.EQUAL
                   ? 'bg-tet-red text-white border-tet-red shadow-lg scale-105'
                   : 'bg-white text-gray-500 border-gray-200 hover:border-red-300'
@@ -131,7 +136,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
             <button
               type="button"
               onClick={() => setMode(DistributionMode.DENOMINATION_RANDOM)}
-              className={`p-3 rounded-lg border-2 font-bold transition-all ${
+              className={`p-2.5 sm:p-3 rounded-lg border-2 text-sm sm:text-base font-bold transition-all ${
                 mode === DistributionMode.DENOMINATION_RANDOM
                   ? 'bg-tet-red text-white border-tet-red shadow-lg scale-105'
                   : 'bg-white text-gray-500 border-gray-200 hover:border-red-300'
@@ -140,33 +145,33 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
               💵 Theo mệnh giá
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-2 text-center">
+          <p className="text-xs text-gray-500 mt-2 text-center leading-relaxed">
             {mode === DistributionMode.RANDOM
               ? "Số tiền trong mỗi bao sẽ khác nhau, tạo sự bất ngờ!"
               : mode === DistributionMode.EQUAL
                 ? "Mọi người đều nhận được số tiền bằng nhau."
-                : "Nhập theo dạng 50x3, 20x2 (đơn vị nghìn), hệ thống chia đều số tờ vào các bao."}
+                : "Nhập theo dạng 50x3, 20x2 (đơn vị nghìn), mỗi bao chỉ nhận đúng 1 tờ ngẫu nhiên."}
           </p>
         </div>
 
         {mode === DistributionMode.DENOMINATION_RANDOM && (
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">Mệnh giá x số lượng (đơn vị nghìn)</label>
+            <label className="block text-gray-700 font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">Mệnh giá x số lượng (đơn vị nghìn)</label>
             <textarea
               value={denominationsInput}
               onChange={(e) => setDenominationsInput(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-tet-red focus:ring-2 focus:ring-red-200 outline-none transition-all text-base font-medium text-gray-800 min-h-[90px]"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 focus:border-tet-red focus:ring-2 focus:ring-red-200 outline-none transition-all text-sm sm:text-base font-medium text-gray-800 min-h-[88px] sm:min-h-[90px]"
               placeholder="Ví dụ: 50x3, 20x2"
             />
             <p className="text-xs text-gray-500 mt-2">
-              Mỗi mục theo dạng mệnh giá x số lượng, ngăn cách bằng dấu phẩy hoặc xuống dòng. Tổng mệnh giá: {denominationTotal.toLocaleString('vi-VN')} VNĐ
+              Mỗi mục theo dạng mệnh giá x số lượng, ngăn cách bằng dấu phẩy hoặc xuống dòng. Mỗi bao chỉ chứa 1 tờ, nên số bao không vượt quá tổng số tờ đã nhập. Tổng mệnh giá: {denominationTotal.toLocaleString('vi-VN')} VNĐ
             </p>
           </div>
         )}
 
         <button
           type="submit"
-          className="w-full bg-gradient-to-r from-tet-red to-orange-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 mt-4 active:scale-95"
+          className="w-full bg-gradient-to-r from-tet-red to-orange-600 text-white font-bold py-3 sm:py-4 rounded-xl text-lg sm:text-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 mt-3 sm:mt-4 active:scale-95"
         >
           BẮT ĐẦU CHIA LÌ XÌ
         </button>

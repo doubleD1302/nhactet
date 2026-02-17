@@ -15,19 +15,13 @@ export const generateEnvelopes = (
   if (count <= 0) return [];
 
   if (mode === DistributionMode.DENOMINATION_RANDOM) {
-    amounts = new Array(count).fill(0);
-
     const shuffledDenominations = [...denominations]
       .filter(value => Number.isFinite(value) && value > 0)
       .sort(() => Math.random() - 0.5);
 
-    const envelopeOrder = Array.from({ length: count }, (_, index) => index)
-      .sort(() => Math.random() - 0.5);
-
-    shuffledDenominations.forEach((value, noteIndex) => {
-      const envelopeIndex = envelopeOrder[noteIndex % count];
-      amounts[envelopeIndex] += value;
-    });
+    amounts = new Array(count)
+      .fill(0)
+      .map((_, index) => shuffledDenominations[index] ?? 0);
   } else if (mode === DistributionMode.EQUAL) {
     const amountPerPerson = Math.floor(totalAmount / count);
     // Handle remainder by adding to the first few or just ignoring small remainder

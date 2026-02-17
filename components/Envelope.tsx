@@ -12,6 +12,7 @@ interface EnvelopeProps {
 export const Envelope: React.FC<EnvelopeProps> = ({ data, onClick, index, disabled }) => {
   // Stagger animation delay based on index
   const animationDelay = `${index * 50}ms`;
+  const wobbleDelay = `${index * 120}ms`;
 
   return (
     <div 
@@ -19,7 +20,10 @@ export const Envelope: React.FC<EnvelopeProps> = ({ data, onClick, index, disabl
       style={{ animationDelay }}
       onClick={() => !data.isOpened && !disabled && onClick()}
     >
-      <div className={`w-24 h-32 sm:w-28 sm:h-40 md:w-32 md:h-44 relative transition-all duration-500 ${data.isOpened ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+      <div
+        className={`w-20 h-28 sm:w-24 sm:h-36 md:w-28 md:h-40 lg:w-32 lg:h-44 relative transition-all duration-500 ${data.isOpened ? 'opacity-50 grayscale' : 'opacity-100 animate-envelope-wobble'}`}
+        style={!data.isOpened ? { animationDelay: wobbleDelay } : undefined}
+      >
         <img 
           src={IMAGES.LIXI} 
           alt="Lixi" 
