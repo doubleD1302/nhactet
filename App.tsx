@@ -18,13 +18,94 @@ const App: React.FC = () => {
   const [selectedEnvelope, setSelectedEnvelope] = useState<EnvelopeData | null>(null);
   const [currentSettings, setCurrentSettings] = useState<GameSettings | null>(null);
   const [volume, setVolume] = useState<number>(0.5);
+  const [isAppReady, setIsAppReady] = useState<boolean>(false);
   const backgroundAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const preloadImage = (src: string) =>
+      new Promise<void>((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+        image.src = src;
+      });
+
+    const preloadAudio = () =>
+      new Promise<void>((resolve) => {
+        const audioElement = backgroundAudioRef.current;
+
+        if (!audioElement) {
+          resolve();
+          return;
+        }
+
+        let settled = false;
+        const finalize = () => {
+          if (settled) return;
+          settled = true;
+          audioElement.removeEventListener('canplaythrough', finalize);
+          audioElement.removeEventListener('loadeddata', finalize);
+          audioElement.removeEventListener('error', finalize);
+          window.clearTimeout(timeoutId);
+          resolve();
+        };
+
+        const timeoutId = window.setTimeout(finalize, 5000);
+
+        audioElement.addEventListener('canplaythrough', finalize, { once: true });
+        audioElement.addEventListener('loadeddata', finalize, { once: true });
+        audioElement.addEventListener('error', finalize, { once: true });
+        audioElement.load();
+      });
+
+    Promise.all([
+      preloadImage(IMAGES.BACKGROUND),
+      preloadImage(IMAGES.LIXI),
+      preloadAudio(),
+    ]).then(() => {
+      if (!isCancelled) {
+        setIsAppReady(true);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (backgroundAudioRef.current) {
       backgroundAudioRef.current.volume = volume;
     }
   }, [volume]);
+
+  useEffect(() => {
+    if (!isAppReady) return;
+
+    const tryPlay = () => {
+      backgroundAudioRef.current?.play().catch(() => undefined);
+    };
+
+    const unlockPlayback = () => {
+      tryPlay();
+      window.removeEventListener('pointerdown', unlockPlayback);
+      window.removeEventListener('touchstart', unlockPlayback);
+      window.removeEventListener('keydown', unlockPlayback);
+    };
+
+    tryPlay();
+    window.addEventListener('pointerdown', unlockPlayback, { once: true });
+    window.addEventListener('touchstart', unlockPlayback, { once: true });
+    window.addEventListener('keydown', unlockPlayback, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', unlockPlayback);
+      window.removeEventListener('touchstart', unlockPlayback);
+      window.removeEventListener('keydown', unlockPlayback);
+    };
+  }, [isAppReady]);
 
   const handleVolumeDown = () => {
     setVolume(prev => Math.max(0, Number((prev - 0.1).toFixed(2))));
@@ -119,6 +200,13 @@ const App: React.FC = () => {
       {/* Overlay lớp phủ tối nhẹ để tăng độ tương phản cho nội dung */}
       <div className="fixed inset-0 z-0 bg-black/10 pointer-events-none"></div>
 
+      {!isAppReady ? (
+        <div className="fixed inset-0 z-30 flex flex-col items-center justify-center bg-black/55 backdrop-blur-sm px-6 text-center">
+          <div className="w-14 h-14 rounded-full border-4 border-white/30 border-t-yellow-300 animate-spin mb-5"></div>
+          <p className="text-white font-semibold text-lg">Đang tải tài nguyên...</p>
+          <p className="text-white/80 text-sm mt-2">Nhạc và hình ảnh sẽ sẵn sàng ngay</p>
+        </div>
+      ) : (
       <div className="relative z-10 flex flex-col items-center min-h-[100dvh]">
         <div className="fixed top-2 right-2 md:top-4 md:right-4 z-20 flex items-center gap-1.5 md:gap-2 bg-black/35 text-white px-2 py-1.5 md:px-3 md:py-2 rounded-full backdrop-blur-sm">
           <span className="hidden sm:inline text-xs font-semibold">Âm lượng</span>
@@ -226,6 +314,7 @@ const App: React.FC = () => {
           Lì Xì May Mắn © {new Date().getFullYear()}
         </div>
       </div>
+      )}
 
       {/* Result Modal */}
       {selectedEnvelope && (
