@@ -202,7 +202,11 @@ const App: React.FC = () => {
 
       {!isAppReady ? (
         <div className="fixed inset-0 z-30 flex flex-col items-center justify-center bg-black/55 backdrop-blur-sm px-6 text-center">
-          <div className="w-14 h-14 rounded-full border-4 border-white/30 border-t-yellow-300 animate-spin mb-5"></div>
+          <img
+            src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHhkcWp5aDNoZ2RlY25jYjBqeHE2M3RuajJzMmxidHI5eGEyc243bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/x0KxxVFwwNbcCWy8hE/giphy.gif"
+            alt="Loading"
+            className="w-24 h-24 sm:w-28 sm:h-28 object-contain mb-4"
+          />
           <p className="text-white font-semibold text-lg">Đang tải tài nguyên...</p>
           <p className="text-white/80 text-sm mt-2">Nhạc và hình ảnh sẽ sẵn sàng ngay</p>
         </div>
