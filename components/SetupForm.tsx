@@ -6,34 +6,27 @@ interface SetupFormProps {
 }
 
 export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
+  const AVAILABLE_VND_DENOMINATIONS = [500000, 200000, 100000, 50000, 20000, 10000];
   const [totalAmount, setTotalAmount] = useState<string>('500000');
   const [totalEnvelopes, setTotalEnvelopes] = useState<string>('5');
   const [mode, setMode] = useState<DistributionMode>(DistributionMode.RANDOM);
-  const [denominationsInput, setDenominationsInput] = useState<string>('50x3, 20x2');
+  const [denominationCounts, setDenominationCounts] = useState<Record<number, number>>(
+    () => AVAILABLE_VND_DENOMINATIONS.reduce((acc, denomination) => ({ ...acc, [denomination]: 0 }), {})
+  );
 
-  const parsedDenominations = denominationsInput
-    .split(/[\n,]+/)
-    .map(part => part.trim())
-    .filter(Boolean)
-    .flatMap(item => {
-      const normalized = item.replace(/\s+/g, '');
-      const matched = normalized.match(/^(\d+)(?:x|\*)(\d+)$/i);
-
-      if (!matched) {
-        return [];
-      }
-
-      const denominationInThousand = parseInt(matched[1], 10);
-      const quantity = parseInt(matched[2], 10);
-
-      if (!Number.isFinite(denominationInThousand) || denominationInThousand <= 0 || !Number.isFinite(quantity) || quantity <= 0) {
-        return [];
-      }
-
-      return new Array(quantity).fill(denominationInThousand * 1000);
-    });
+  const parsedDenominations = AVAILABLE_VND_DENOMINATIONS.flatMap((denomination) =>
+    new Array(denominationCounts[denomination] ?? 0).fill(denomination)
+  );
 
   const denominationTotal = parsedDenominations.reduce((sum, value) => sum + value, 0);
+  const totalSelectedBills = parsedDenominations.length;
+
+  const updateDenominationCount = (denomination: number, delta: number) => {
+    setDenominationCounts((prev) => ({
+      ...prev,
+      [denomination]: Math.max(0, (prev[denomination] ?? 0) + delta),
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +41,7 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
 
     if (usingDenominations) {
       if (parsedDenominations.length === 0) {
-        alert("Vui lòng nhập đúng định dạng mệnh giá, ví dụ: 50x3, 20x2.");
+        alert("Vui lòng chọn số lượng cho ít nhất 1 mệnh giá.");
         return;
       }
 
@@ -150,21 +143,48 @@ export const SetupForm: React.FC<SetupFormProps> = ({ onStart }) => {
               ? "Số tiền trong mỗi bao sẽ khác nhau, tạo sự bất ngờ!"
               : mode === DistributionMode.EQUAL
                 ? "Mọi người đều nhận được số tiền bằng nhau."
-                : "Nhập theo dạng 50x3, 20x2 (đơn vị nghìn), mỗi bao chỉ nhận đúng 1 tờ ngẫu nhiên."}
+                : "Chọn số lượng cho từng mệnh giá VND có sẵn, mỗi bao chỉ nhận đúng 1 tờ ngẫu nhiên."}
           </p>
         </div>
 
         {mode === DistributionMode.DENOMINATION_RANDOM && (
           <div>
-            <label className="block text-gray-700 font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">Mệnh giá x số lượng (đơn vị nghìn)</label>
-            <textarea
-              value={denominationsInput}
-              onChange={(e) => setDenominationsInput(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 focus:border-tet-red focus:ring-2 focus:ring-red-200 outline-none transition-all text-sm sm:text-base font-medium text-gray-800 min-h-[88px] sm:min-h-[90px]"
-              placeholder="Ví dụ: 50x3, 20x2"
-            />
+            <label className="block text-gray-700 font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">Số lượng theo mệnh giá VND</label>
+            <div className="space-y-2">
+              {AVAILABLE_VND_DENOMINATIONS.map((denomination) => (
+                <div key={denomination} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-gray-200 bg-white">
+                  <span className="text-sm sm:text-base font-semibold text-gray-700">
+                    {denomination.toLocaleString('vi-VN')}đ
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateDenominationCount(denomination, -1)}
+                      className="w-8 h-8 rounded-full border border-gray-300 text-gray-700 font-bold hover:border-red-300"
+                      aria-label={`Giảm mệnh giá ${denomination.toLocaleString('vi-VN')} đồng`}
+                    >
+                      -
+                    </button>
+
+                    <span className="w-10 text-center text-base font-bold text-gray-800">
+                      {denominationCounts[denomination] ?? 0}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => updateDenominationCount(denomination, 1)}
+                      className="w-8 h-8 rounded-full border border-gray-300 text-gray-700 font-bold hover:border-red-300"
+                      aria-label={`Tăng mệnh giá ${denomination.toLocaleString('vi-VN')} đồng`}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
             <p className="text-xs text-gray-500 mt-2">
-              Mỗi mục theo dạng mệnh giá x số lượng, ngăn cách bằng dấu phẩy hoặc xuống dòng. Mỗi bao chỉ chứa 1 tờ, nên số bao không vượt quá tổng số tờ đã nhập. Tổng mệnh giá: {denominationTotal.toLocaleString('vi-VN')} VNĐ
+              Tổng số tờ đã chọn: {totalSelectedBills}. Mỗi bao chỉ chứa 1 tờ, nên số bao không vượt quá tổng số tờ. Tổng mệnh giá: {denominationTotal.toLocaleString('vi-VN')} VNĐ
             </p>
           </div>
         )}
